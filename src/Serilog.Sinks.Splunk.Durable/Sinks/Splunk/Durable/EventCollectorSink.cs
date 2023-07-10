@@ -19,6 +19,7 @@ using System.Net.Http;
 using System.Text;
 using Serilog.Core;
 using Serilog.Events;
+using Serilog.Formatting;
 
 namespace Serilog.Sinks.Splunk.Durable
 {
@@ -37,10 +38,12 @@ namespace Serilog.Sinks.Splunk.Durable
             long? bufferSizeLimitBytes,
             long? eventBodyLimitBytes,
             HttpMessageHandler messageHandler,
-            long? retainedInvalidPayloadsLimitBytes)
+            long? retainedInvalidPayloadsLimitBytes,
+            ITextFormatter jsonFormatter = null)
         {
             if (serverUrl == null) throw new ArgumentNullException(nameof(serverUrl));
             if (bufferBaseFilename == null) throw new ArgumentNullException(nameof(bufferBaseFilename));
+            if (jsonFormatter == null) jsonFormatter = new CompactSplunkJsonFormatter(renderTemplate: true);
 
             var fileSet = new FileSet(bufferBaseFilename);
 
@@ -58,7 +61,7 @@ namespace Serilog.Sinks.Splunk.Durable
             const long individualFileSizeLimitBytes = 100L * 1024 * 1024;
             _sink = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
-                .WriteTo.File(new CompactSplunkJsonFormatter(renderTemplate: true),
+                .WriteTo.File(jsonFormatter,
                         fileSet.RollingFilePathFormat,
                         rollingInterval: RollingInterval.Day,
                         fileSizeLimitBytes: individualFileSizeLimitBytes,

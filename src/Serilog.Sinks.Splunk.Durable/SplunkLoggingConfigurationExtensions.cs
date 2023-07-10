@@ -19,6 +19,7 @@ using Serilog.Events;
 using System.Net.Http;
 using Serilog.Sinks.PeriodicBatching;
 using Serilog.Sinks.Splunk.Durable;
+using Serilog.Formatting;
 
 namespace Serilog
 {
@@ -42,6 +43,7 @@ namespace Serilog
         /// <param name="retainedInvalidPayloadsLimitBytes"></param>
         /// <param name="messageHandler"></param>
         /// <param name="levelSwitch"></param>
+        /// <param name="jsonFormatter">The text formatter used to render log events into a JSON format for consumption by Splunk</param>
         /// <returns></returns>
         public static LoggerConfiguration SplunkEventCollector(
            this LoggerSinkConfiguration configuration,
@@ -55,7 +57,8 @@ namespace Serilog
            long? eventBodyLimitBytes = 512 * 1024,
            long? retainedInvalidPayloadsLimitBytes = null,
            HttpMessageHandler messageHandler = null,
-           LoggingLevelSwitch levelSwitch = null)
+           LoggingLevelSwitch levelSwitch = null,
+           ITextFormatter jsonFormatter = null)
         {
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
 
@@ -68,7 +71,8 @@ namespace Serilog
                 bufferSizeLimitBytes,
                 eventBodyLimitBytes,
                 messageHandler,
-                retainedInvalidPayloadsLimitBytes);
+                retainedInvalidPayloadsLimitBytes,
+                jsonFormatter);
 
             return configuration.Sink(eventCollectorSink, restrictedToMinimumLevel, levelSwitch);
         }
